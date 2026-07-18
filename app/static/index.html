@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ReleaseLens — Project Management Tool</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css?v=22">
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="ReleaseLens Project Management Tool home"><span class="brand-mark">R</span><span>Release<span>Lens</span><small>PROJECT MANAGEMENT TOOL</small></span></a>
+    <div class="context-selectors">
+      <label><small>PRODUCT SPACE</small><select id="product-space-select" aria-label="Product space"></select></label>
+      <div class="selector-actions"><button id="add-space">＋ Add</button><button id="edit-space">Edit</button><button id="delete-space">Delete</button></div>
+      <label id="project-selector-wrap"><small>PROJECT</small><select id="project-select" aria-label="Project"></select></label>
+      <div id="project-selector-actions" class="selector-actions"><button id="add-project">＋ Add</button><button id="edit-project">Edit</button><button id="delete-project">Delete</button></div>
+    </div>
+    <nav aria-label="Main navigation">
+      <p>PLANNING</p>
+      <a class="nav-item active" href="#generator" data-view="generator"><span>✦</span> AI Generator <em>NEW</em></a>
+      <a class="nav-item" href="#overview" data-view="overview"><span>▦</span> Overview</a>
+      <a class="nav-item" href="#backlog" data-view="backlog"><span>≡</span> Backlog <b id="nav-backlog-count">0</b></a>
+      <a class="nav-item" href="#features" data-view="features"><span>◇</span> Features</a>
+      <a class="nav-item" href="#stories" data-view="stories"><span>☷</span> User Stories</a>
+      <a class="nav-item" href="#board"><span>▥</span> Board</a>
+      <a class="nav-item" href="#sprints"><span>◷</span> Sprints</a>
+      <a class="nav-item" href="#roadmap"><span>⌁</span> Roadmap</a>
+      <p>DELIVERY</p>
+      <a class="nav-item" href="#releases"><span>◉</span> PI Releases</a>
+      <a class="nav-item" href="#dependencies"><span>⌘</span> Dependencies</a>
+      <a class="nav-item" href="#tests"><span>✓</span> Test Cases</a>
+      <a class="nav-item" href="#defects"><span>◇</span> Defects</a>
+      <p>INSIGHTS</p>
+      <a class="nav-item" href="#reports"><span>◫</span> Reports</a>
+      <a class="nav-item" href="#velocity"><span>↗</span> Team Velocity</a>
+      <a class="nav-item" href="#readiness"><span>◎</span> Release Readiness</a>
+      <p>ADMINISTRATION</p>
+      <a class="nav-item" href="#spaces"><span>▦</span> Product Spaces</a>
+      <a class="nav-item" href="#projects"><span>□</span> Projects</a>
+      <a class="nav-item" href="#members"><span>♙</span> Members</a>
+      <a class="nav-item" href="#settings"><span>⚙</span> Settings</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a class="nav-item" href="/docs"><span>?</span> API documentation</a>
+      <div class="profile"><span>AK</span><div><strong>Abhin</strong><small>Product owner</small></div><button aria-label="Profile menu">•••</button></div>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <div class="crumbs" id="breadcrumb-context" hidden><span><small>PRODUCT SPACE</small><b id="crumb-space"></b></span><i>›</i><span id="breadcrumb-project"><small>PROJECT</small><b id="crumb-project"></b></span><i id="breadcrumb-project-separator">›</i><span><small>PAGE</small><strong>AI Generator</strong></span></div>
+      <div class="top-actions"><button class="search">⌕ <span>Search workspace</span><kbd>⌘ K</kbd></button><button class="icon-btn" aria-label="Notifications">♢<i></i></button><button id="global-create" class="primary small">＋ Create</button></div>
+    </header>
+
+    <div class="content" id="generator">
+      <section id="planning-hierarchy-bar" class="planning-hierarchy-bar" aria-label="Planning hierarchy filters">
+        <div class="hierarchy-bar-head"><div class="hierarchy-title"><span class="hierarchy-title-icon">⌘</span><div><small>PLANNING CONTEXT</small><h2>Filter project work</h2></div></div><div class="hierarchy-actions"><button id="hierarchy-clear" class="hierarchy-action" type="button">Clear</button><button id="hierarchy-refresh" class="hierarchy-action refresh" type="button" aria-label="Refresh hierarchy">↻ <span>Refresh</span></button></div></div>
+        <div class="hierarchy-selects"><label>PI Release<select id="hierarchy-pi"><option value="">All PI Releases</option></select></label><label>Feature<select id="hierarchy-feature"><option value="">All Features</option></select></label><label>Sprint<select id="hierarchy-sprint"><option value="">All Sprints</option></select></label><label>User Story<select id="hierarchy-story"><option value="">All User Stories</option></select></label></div>
+        <div id="hierarchy-path" class="hierarchy-path">All planning work</div>
+      </section>
+      <section id="overview-view" class="app-view" hidden><div class="view-heading"><div><div class="eyebrow"><span>▦</span> PRODUCT SPACE</div><h1 id="overview-name">Customer Experience</h1><p>Projects and delivery health across this product space.</p></div><button id="overview-refresh" class="secondary">↻ Refresh</button></div><div id="overview-metrics" class="work-metrics"></div><div class="section-title"><div><h2>Projects</h2><p>Open a project to manage its work</p></div></div><div id="overview-projects" class="overview-projects"><div class="loading-work">Loading projects…</div></div></section>
+      <section class="project-strip app-view generator-view"><div class="project-avatar">CSB</div><div><small>ACTIVE PROJECT</small><strong id="active-project-name">Customer Support Bot</strong><span id="active-project-meta">CSB · Customer Experience</span></div><div class="project-strip-meta"><span><small>CURRENT RELEASE</small><b id="active-release-name">MVP 1.0</b></span><span><small>PROJECT OWNER</small><b id="active-owner">Abhinav</b></span><span class="health"><small>PROJECT HEALTH</small><b>● On track</b></span></div></section>
+      <section class="hero app-view generator-view">
+        <div><div class="eyebrow"><span>✦</span> AI-POWERED PLANNING</div><h1>Turn requirements into<br><em>ready-to-build work.</em></h1><p>Transform rough ideas and product documents into clear features and testable user stories in seconds.</p></div>
+        <div class="hero-stat"><div class="pulse">✦</div><div><strong>12.4h</strong><span>Planning time saved</span></div><div class="trend">↗ 18%</div></div>
+      </section>
+
+      <section class="generator-card app-view generator-view">
+        <div class="tabs" role="tablist">
+          <button class="tab active" role="tab" aria-selected="true" data-mode="feature"><span class="tab-icon purple">◇</span><span><strong>Feature</strong><small>One complete product feature</small></span></button>
+          <button class="tab" role="tab" aria-selected="false" data-mode="stories"><span class="tab-icon blue">≡</span><span><strong>User stories</strong><small>Multiple scoped stories</small></span></button>
+        </div>
+
+        <form id="generation-form">
+          <div class="form-head"><div><label for="requirements">Requirements source</label><p>Add your context as text or upload a product document.</p></div><span class="secure">⌾ Your data stays private</span></div>
+          <div class="generation-context"><label>PI Release *<select id="release-select" required></select></label><label id="existing-feature-label">Existing feature (optional)<select id="existing-feature-select"><option value="">Create a new feature</option></select></label><label id="generator-feature-label" hidden>Parent feature *<select id="generator-feature-select"></select></label><label id="sprint-label" hidden>Sprint<select id="sprint-select"></select><button type="button" id="generate-sprints" class="field-link">Generate 6 Sprints for this PI</button></label></div>
+          <div id="selected-feature-context" class="selected-feature-context" hidden></div>
+          <div class="source-toggle"><button type="button" class="source-btn active" data-source="text">Text input</button><button type="button" class="source-btn" data-source="file">Upload document</button></div>
+          <div id="text-panel" class="source-panel active">
+            <textarea id="requirements" name="text" maxlength="100000" placeholder="Describe the problem, user need, or product requirement…&#10;&#10;Example: Customers need a secure way to reset forgotten passwords without contacting support."></textarea>
+            <div class="textarea-footer"><button type="button" id="use-example">↗ Use an example</button><span id="char-count">0 / 100,000</span></div>
+          </div>
+          <div id="file-panel" class="source-panel">
+            <input id="document" name="file" type="file" accept=".txt,.md,.pdf,.docx">
+            <label class="dropzone" for="document"><span class="upload-icon">⇧</span><strong>Drop a document here or <u>browse</u></strong><small>PDF, DOCX, TXT or MD · Maximum 5 MB</small><em id="file-name"></em></label>
+          </div>
+          <div id="count-field" class="count-field" hidden><label for="story-count">Number of stories</label><div class="stepper"><button type="button" id="minus" aria-label="Decrease">−</button><input id="story-count" name="count" type="number" min="1" max="20" value="3"><button type="button" id="plus" aria-label="Increase">＋</button></div><small>Generate between 1 and 20 stories</small></div>
+          <div id="form-error" class="form-error" role="alert"></div>
+          <div class="form-actions"><div><span class="spark">✦</span><span><strong>Powered by OpenAI</strong><small>Outputs are structured and ready to refine</small></span></div><button id="generate-btn" class="primary" type="submit"><span>✦</span> Generate feature <b>→</b></button></div>
+        </form>
+      </section>
+
+      <section id="results" class="results app-view generator-view" aria-live="polite" hidden>
+        <div class="results-head"><div><span class="status-dot"></span><div><small>GENERATED OUTPUT</small><h2 id="results-title">Feature draft</h2></div></div><div><button id="copy-btn" class="secondary">□ Copy</button><button id="new-btn" class="secondary">↻ Start new</button></div></div>
+        <div id="results-content"></div>
+        <div class="save-bar"><span><strong>Ready to keep this work?</strong><small>Save the reviewed output to the selected project.</small></span><button id="save-draft-btn" class="secondary">Save draft</button><button id="save-backlog-btn" class="primary">Add to backlog</button></div>
+      </section>
+
+      <section class="recent app-view backlog-view" id="backlog">
+        <div class="section-title"><div><h2>Project work</h2><p>Features and user stories saved in the selected project</p></div><div class="section-actions"><button id="refresh-work">↻ Refresh</button><button id="create-story" class="secondary">＋ Story</button><button id="create-feature" class="primary small">＋ Feature</button></div></div>
+        <div class="work-metrics"><div><span>FEATURES</span><strong id="feature-total">0</strong></div><div><span>USER STORIES</span><strong id="story-total">0</strong></div><div><span>IN PROGRESS</span><strong id="progress-total">0</strong></div><div><span>COMPLETED</span><strong id="completed-total">0</strong></div></div>
+        <div class="work-columns">
+          <div class="work-column"><div class="work-column-head"><h3>Features</h3><span id="feature-badge">0 items</span></div><div id="feature-list" class="work-list"><div class="loading-work">Loading features…</div></div></div>
+          <div class="work-column"><div class="work-column-head"><h3>User stories</h3><span id="story-badge">0 items</span></div><div id="story-list" class="work-list"><div class="loading-work">Loading stories…</div></div></div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <dialog id="work-item-dialog" class="work-dialog">
+    <form id="work-item-form" method="dialog">
+      <div class="dialog-head"><div><small id="dialog-eyebrow">NEW WORK ITEM</small><h2 id="dialog-title">Create feature</h2></div><button type="button" id="dialog-close" aria-label="Close">×</button></div>
+      <input id="work-item-id" type="hidden"><input id="work-item-version" type="hidden"><input id="work-item-type" type="hidden">
+      <label>Title<input id="work-title" type="text" minlength="3" maxlength="500" required></label>
+      <label>Description<textarea id="work-description" maxlength="20000" placeholder="Describe the expected outcome and scope"></textarea></label>
+      <label>PI Release *<select id="work-pi-release" required></select></label><div class="dialog-grid"><label>Status<select id="work-status"><option value="DRAFT">Draft</option><option value="BACKLOG">Backlog</option><option value="READY">Ready</option><option value="IN_PROGRESS">In progress</option><option value="BLOCKED">Blocked</option><option value="DONE">Done</option></select></label><label>Priority<select id="work-priority"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option><option>CRITICAL</option></select></label><label id="points-label">Story points<input id="work-points" type="number" min="1" max="100" value="3"></label></div>
+      <label id="parent-label">Parent feature<select id="work-parent"></select></label>
+      <div id="dialog-error" class="form-error"></div>
+      <div class="dialog-actions"><button type="button" id="dialog-cancel" class="secondary">Cancel</button><button type="submit" class="primary">Save changes</button></div>
+    </form>
+  </dialog>
+  <dialog id="hierarchy-dialog" class="work-dialog"><form id="hierarchy-form" method="dialog"><div class="dialog-head"><div><small>HIERARCHY MANAGEMENT</small><h2 id="hierarchy-title">Add product space</h2></div><button type="button" id="hierarchy-close">×</button></div><input id="hierarchy-type" type="hidden"><input id="hierarchy-id" type="hidden"><label>Name<input id="hierarchy-name" required minlength="2" maxlength="200"></label><label>Key<input id="hierarchy-key" required minlength="2" maxlength="20"></label><label>Description<textarea id="hierarchy-description"></textarea></label><div id="hierarchy-error" class="form-error"></div><div class="dialog-actions"><button type="button" id="hierarchy-cancel" class="secondary">Cancel</button><button type="submit" class="primary">Save and Close</button></div></form></dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="/static/app.js?v=24"></script>
+</body>
+</html>
