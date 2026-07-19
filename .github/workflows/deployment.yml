@@ -2,16 +2,22 @@ name: Validate and Deploy ReleaseLens
 
 on:
   pull_request:
-    branches: [main]
+    branches:
+      - main
+      - develop
+      - "feature/**"
   push:
-    branches: [main]
+    branches:
+      - main
+      - develop
+      - "feature/**"
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: releaselens-production
+  group: releaselens-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -90,7 +96,7 @@ jobs:
 
   deploy:
     name: Deploy production
-    if: github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 10
