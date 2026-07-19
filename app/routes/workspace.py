@@ -82,7 +82,7 @@ def update_product_space(space_id: UUID,request: HierarchyInput) -> dict:
     return {"message":"Product space saved."}
 
 
-@router.delete("/product-spaces/{space_id}")
+@router.delete("/product-spaces/{space_id}/empty", deprecated=True)
 def delete_product_space(space_id: UUID) -> dict:
     with get_connection() as connection, connection.cursor() as cursor:
         cursor.execute("select count(*) n from projects where product_space_id=%s",(space_id,)); count=cursor.fetchone()["n"]
@@ -126,7 +126,7 @@ def update_project(project_id: UUID,request: HierarchyInput) -> dict:
     return {"message":"Project saved."}
 
 
-@router.delete("/projects/{project_id}")
+@router.delete("/projects/{project_id}/empty", deprecated=True)
 def delete_project(project_id: UUID) -> dict:
     with get_connection() as connection, connection.cursor() as cursor:
         cursor.execute("select (select count(*) from features where project_id=%s)+(select count(*) from user_stories where project_id=%s) n",(project_id,project_id)); count=cursor.fetchone()["n"]
@@ -438,7 +438,7 @@ def update_work_item(project_id: UUID, item_type: Literal["feature", "story"], i
     return {"success":True,"version":updated["version"],"message":"Changes saved."}
 
 
-@router.delete("/projects/{project_id}/work-items/{item_type}/{item_id}")
+@router.post("/projects/{project_id}/work-items/{item_type}/{item_id}/archive")
 def archive_work_item(project_id: UUID, item_type: Literal["feature", "story"], item_id: UUID) -> dict:
     table="features" if item_type=="feature" else "user_stories"
     with get_connection() as connection, connection.cursor() as cursor:
@@ -452,17 +452,15 @@ def archive_work_item(project_id: UUID, item_type: Literal["feature", "story"], 
     return {"success":True,"archived_children":child_count,"message":f"Work item archived{f' with {child_count} user stories' if child_count else ''}."}
 
 
-@router.delete("/projects/{project_id}/work-items/{item_type}/{item_id}/permanent")
-def permanently_delete_work_item(project_id: UUID,item_type: Literal["feature","story"],item_id: UUID) -> dict:
-    table="features" if item_type=="feature" else "user_stories"
+@router.post("/projects/{project_id}/work-items/{item_type}/{item_id}/restore")
+def restore_work_item(project_id: UUID, item_type: Literal["feature", "story"], item_id: UUID) -> dict:
+    table = "features" if item_type == "feature" else "user_stories"
     with get_connection() as connection, connection.cursor() as cursor:
-        if item_type=="feature":
-            cursor.execute("select count(*) n from user_stories where feature_id=%s",(item_id,));children=cursor.fetchone()["n"]
-            if children: raise HTTPException(status_code=409,detail=f"This feature contains {children} user stories. Archive the hierarchy or move/delete the stories first.")
-        cursor.execute(f"delete from {table} where id=%s and project_id=%s returning id",(item_id,project_id))
-        if not cursor.fetchone(): raise HTTPException(status_code=404,detail="Work item not found.")
+        cursor.execute(f"update {table} set archived_at=null,updated_at=now() where id=%s and project_id=%s and archived_at is not null returning id", (item_id, project_id))
+        if not cursor.fetchone():
+            raise HTTPException(404, "Archived work item not found.")
         connection.commit()
-    return {"success":True,"message":"Work item permanently deleted."}
+    return {"success": True, "message": "Work item restored."}
 
 
 def _statuses(mode: str) -> tuple[str, str]:

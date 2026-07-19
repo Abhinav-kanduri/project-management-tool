@@ -123,7 +123,8 @@
     </form>
   </dialog>
   <dialog id="hierarchy-dialog" class="work-dialog"><form id="hierarchy-form" method="dialog"><div class="dialog-head"><div><small>HIERARCHY MANAGEMENT</small><h2 id="hierarchy-title">Add product space</h2></div><button type="button" id="hierarchy-close">×</button></div><input id="hierarchy-type" type="hidden"><input id="hierarchy-id" type="hidden"><label>Name<input id="hierarchy-name" required minlength="2" maxlength="200"></label><label>Key<input id="hierarchy-key" required minlength="2" maxlength="20"></label><label>Description<textarea id="hierarchy-description"></textarea></label><div id="hierarchy-error" class="form-error"></div><div class="dialog-actions"><button type="button" id="hierarchy-cancel" class="secondary">Cancel</button><button type="submit" class="primary">Save and Close</button></div></form></dialog>
+  <dialog id="delete-dialog" class="work-dialog"><form id="delete-form" method="dialog"><div class="dialog-head"><div><small>PERMANENT DELETION</small><h2 id="delete-title">Permanently delete?</h2></div><button type="button" id="delete-close">×</button></div><div id="delete-summary" class="delete-summary"></div><div id="delete-error" class="form-error"></div><div class="dialog-actions"><button type="button" id="delete-cancel" class="secondary">Cancel</button><button type="submit" id="delete-submit" class="primary danger" disabled>Permanently Delete</button></div></form></dialog>
   <div id="toast" class="toast" role="status"></div>
-  <script src="/static/app.js?v=24"></script>
+  <script src="/static/app.js?v=25"></script>
 </body>
 </html>
