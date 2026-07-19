@@ -1,0 +1,10 @@
+alter table public.product_spaces add column if not exists space_key varchar(20);
+alter table public.product_spaces add column if not exists status varchar(30) not null default 'ACTIVE';
+alter table public.product_spaces add column if not exists version integer not null default 1;
+alter table public.projects add column if not exists description text;
+alter table public.projects add column if not exists status varchar(30) not null default 'ACTIVE';
+alter table public.projects add column if not exists health varchar(30) not null default 'ON_TRACK';
+alter table public.projects add column if not exists version integer not null default 1;
+alter table public.projects add column if not exists archived_at timestamptz;
+update public.product_spaces set space_key=case name when 'Customer Experience' then 'CE' when 'Restaurant Operations' then 'RO' when 'Enterprise Knowledge' then 'EK' else upper(left(regexp_replace(name,'[^A-Za-z]','','g'),3)) end where space_key is null;
+create unique index if not exists product_spaces_org_key_idx on public.product_spaces(organization_id,space_key);
