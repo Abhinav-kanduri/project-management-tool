@@ -22,6 +22,8 @@ truncate table
   public.projects,
   public.product_spaces,
   public.organizations,
+  public.document_ingestion_events,
+  public.document_ingestion_jobs,
   public.document_chunks,
   public.documents,
   public.connection_test,
