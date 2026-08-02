@@ -2,6 +2,14 @@
 
 ReleaseLens is a FastAPI and PostgreSQL application for organizing product-planning work and generating Features and User Stories with OpenAI.
 
+## GitHub repository summary, artifacts, and semantic search
+
+ReleaseLens includes `POST /api/v1/github/summary` plus Markdown download, chunk inspection, and pgvector semantic-search APIs. The end-to-end architecture, backend-only PAT placement, environment variables, PostgreSQL migration, Docker commands, PowerShell/cURL examples, artifact paths, cache and force-refresh behavior, troubleshooting, and test commands are documented in [docs/github-summary-indexing.md](docs/github-summary-indexing.md).
+
+The workspace sidebar also lists repositories available to the backend GitHub PAT and lets a user link a repository by its stable GitHub ID to the selected Product Space and Project. Repository metadata is re-fetched server-side before it is stored.
+
+For local Docker startup, copy `.env.example` to `.env`, set `GITHUB_TOKEN` and `OPENAI_API_KEY` only in that backend file, then run `docker compose up --build`. Swagger is served at `http://127.0.0.1:8001/docs`.
+
 The application hierarchy is:
 
 ```text
@@ -41,6 +49,23 @@ The default local URLs are:
 - ReDoc: `http://127.0.0.1:8000/redoc`
 - Health check: `http://127.0.0.1:8000/health`
 
+### Optional Neo4j + LangChain graph RAG
+
+The easiest local setup uses the included Neo4j Community Docker Compose service:
+
+```powershell
+python infra/neo4j/scripts/generate_env.py
+python -m pip install -r requirements.txt
+docker compose --env-file infra/neo4j/.env -f infra/neo4j/compose.yaml up -d
+python infra/neo4j/scripts/wait_for_neo4j.py
+python infra/neo4j/scripts/neo4j_migrate.py
+python infra/neo4j/scripts/neo4j_verify.py
+```
+
+FastAPI exposes graph health, LangChain schema, and vector-search routes under
+`/api/v1/graph`. See [Neo4j local development](docs/neo4j-local-development.md)
+for connections, migrations, VS Code tasks, persistence, and troubleshooting.
+
 ## Configuration
 
 | Variable | Required | Purpose |
@@ -51,6 +76,10 @@ The default local URLs are:
 | `APP_ENV` | No | Environment name; defaults to `development`. |
 | `ENABLE_APPLICATION_DATA_RESET` | No | Must equal `true` before the reset API is available. |
 | `ADMIN_RESET_TOKEN` | For reset | Secret supplied through `X-Admin-Token`. Never put it in frontend code. |
+| `NEO4J_URI` | For graph RAG | Bolt URI; defaults to `neo4j://localhost:7687`. |
+| `NEO4J_USERNAME` | For graph RAG | Defaults to `neo4j`. |
+| `NEO4J_PASSWORD` | For graph RAG | Loaded automatically from the ignored `infra/neo4j/.env`. |
+| `NEO4J_DATABASE` | No | Defaults to `neo4j`. |
 
 ## API conventions
 

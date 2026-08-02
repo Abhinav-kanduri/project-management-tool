@@ -1,0 +1,100 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Neo4j: Start",
+      "dependsOrder": "sequence",
+      "dependsOn": [
+        "Neo4j: Start Container",
+        "Neo4j: Wait Until Ready",
+        "Neo4j: Run Migrations",
+        "Neo4j: Verify"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Start Container",
+      "type": "shell",
+      "command": "docker compose --env-file infra/neo4j/.env -f infra/neo4j/compose.yaml up -d",
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Stop",
+      "type": "shell",
+      "command": "docker compose --env-file infra/neo4j/.env -f infra/neo4j/compose.yaml down",
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Restart",
+      "type": "shell",
+      "command": "docker compose --env-file infra/neo4j/.env -f infra/neo4j/compose.yaml restart neo4j",
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Logs",
+      "type": "shell",
+      "command": "docker compose --env-file infra/neo4j/.env -f infra/neo4j/compose.yaml logs -f neo4j",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Wait Until Ready",
+      "type": "shell",
+      "command": ".venv/bin/python infra/neo4j/scripts/wait_for_neo4j.py",
+      "windows": {
+        "command": ".venv\\Scripts\\python.exe infra\\neo4j\\scripts\\wait_for_neo4j.py"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Migration Status",
+      "type": "shell",
+      "command": ".venv/bin/python infra/neo4j/scripts/neo4j_migrate.py --status",
+      "windows": {
+        "command": ".venv\\Scripts\\python.exe infra\\neo4j\\scripts\\neo4j_migrate.py --status"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Run Migrations",
+      "type": "shell",
+      "command": ".venv/bin/python infra/neo4j/scripts/neo4j_migrate.py",
+      "windows": {
+        "command": ".venv\\Scripts\\python.exe infra\\neo4j\\scripts\\neo4j_migrate.py"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Verify",
+      "type": "shell",
+      "command": ".venv/bin/python infra/neo4j/scripts/neo4j_verify.py",
+      "windows": {
+        "command": ".venv\\Scripts\\python.exe infra\\neo4j\\scripts\\neo4j_verify.py"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Open Browser",
+      "type": "shell",
+      "command": "python -m webbrowser http://localhost:7474",
+      "problemMatcher": []
+    },
+    {
+      "label": "Neo4j: Reset Local Database",
+      "type": "shell",
+      "command": ".venv/bin/python infra/neo4j/scripts/neo4j_reset.py ${input:confirmReset}",
+      "windows": {
+        "command": ".venv\\Scripts\\python.exe infra\\neo4j\\scripts\\neo4j_reset.py ${input:confirmReset}"
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "confirmReset",
+      "type": "promptString",
+      "description": "Type --yes-delete-all-local-neo4j-data to permanently reset local Neo4j",
+      "default": "cancel"
+    }
+  ]
+}

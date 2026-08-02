@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "neo4j-extensions.neo4j-for-vscode",
+    "ms-azuretools.vscode-containers"
+  ]
+}

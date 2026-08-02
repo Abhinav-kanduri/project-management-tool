@@ -1,0 +1,9 @@
+CREATE INDEX project_name IF NOT EXISTS FOR (n:Project) ON (n.name);
+CREATE INDEX document_status IF NOT EXISTS FOR (n:Document) ON (n.status);
+CREATE INDEX document_checksum IF NOT EXISTS FOR (n:Document) ON (n.checksum);
+CREATE INDEX entity_normalized_name IF NOT EXISTS FOR (n:Entity) ON (n.normalized_name);
+CREATE INDEX entity_type IF NOT EXISTS FOR (n:Entity) ON (n.entity_type);
+CREATE INDEX release_environment IF NOT EXISTS FOR (n:Release) ON (n.environment);
+CREATE INDEX release_status IF NOT EXISTS FOR (n:Release) ON (n.status);
+CREATE INDEX feature_status IF NOT EXISTS FOR (n:Feature) ON (n.status);
+CREATE INDEX user_story_status IF NOT EXISTS FOR (n:UserStory) ON (n.status);

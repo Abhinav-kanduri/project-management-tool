@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: repository_summary
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d repository_summary"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    volumes:
+      - repository_summary_postgres:/var/lib/postgresql/data
+      - ./sql/tables/00_prerequisites.sql:/docker-entrypoint-initdb.d/00-prerequisites.sql:ro
+      - ./sql/tables/05_organizations.sql:/docker-entrypoint-initdb.d/05-organizations.sql:ro
+      - ./sql/tables/06_product_spaces.sql:/docker-entrypoint-initdb.d/06-product-spaces.sql:ro
+      - ./sql/tables/07_projects.sql:/docker-entrypoint-initdb.d/07-projects.sql:ro
+      - ./sql/github_repository_catalog.sql:/docker-entrypoint-initdb.d/10-github-repository-catalog.sql:ro
+      - ./sql/github_repository_summaries.sql:/docker-entrypoint-initdb.d/20-github-repository-summaries.sql:ro
+
+  api:
+    build: .
+    env_file:
+      - .env
+    environment:
+      DATABASE_ENABLED: "true"
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/repository_summary
+      OUTPUT_DIRECTORY: /app/artifacts
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./artifacts:/app/artifacts
+
+volumes:
+  repository_summary_postgres:
