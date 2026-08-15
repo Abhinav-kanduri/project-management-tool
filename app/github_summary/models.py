@@ -29,6 +29,17 @@ class RepositorySummaryRequest(BaseModel):
         return value
 
 
+class RepositoryBranchOption(BaseModel):
+    name: str
+    commit_sha: str | None = None
+    protected: bool = False
+
+
+class RepositoryBranchOptionsResponse(BaseModel):
+    branches: list[RepositoryBranchOption]
+    refreshed_at: datetime
+
+
 class ComponentSummary(BaseModel):
     name: str
     paths: list[str]
@@ -164,7 +175,23 @@ class ChunkInspectionResponse(BaseModel):
 
 
 class SummarySearchRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "oneOf": [
+                {
+                    "title": "Search by summary document",
+                    "required": ["document_id"],
+                    "not": {"required": ["repository_url"]},
+                },
+                {
+                    "title": "Search by repository",
+                    "required": ["repository_url"],
+                    "not": {"required": ["document_id"]},
+                },
+            ]
+        },
+    )
 
     document_id: UUID | None = None
     repository_url: str | None = Field(default=None, min_length=20, max_length=500)
@@ -202,3 +229,19 @@ class SummarySearchResponse(BaseModel):
     query: str
     score_calculation: str = "cosine_similarity = 1 - pgvector_cosine_distance"
     results: list[SummarySearchResult]
+
+
+class SummaryDocumentReference(BaseModel):
+    document_id: UUID
+    repository_url: str
+    repository_full_name: str
+    branch: str
+    commit_sha: str
+    title: str
+    generated_at: datetime
+    indexed_at: datetime | None = None
+    chunk_count: int
+
+
+class LatestSummaryResponse(BaseModel):
+    summary: SummaryDocumentReference | None = None

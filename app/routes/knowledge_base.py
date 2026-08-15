@@ -49,6 +49,7 @@ async def upload_knowledge_document(
     (
         document_id,
         stored_path,
+        original_filename,
         total_size,
         checksum,
         content_type,
@@ -56,9 +57,9 @@ async def upload_knowledge_document(
     try:
         create_document(
             document_id=document_id,
-            filename=stored_path.name,
+            filename=original_filename,
             document_type=normalized_document_type(
-                document_type, stored_path.name, content_type
+                document_type, original_filename, content_type
             ),
             product_space_id=product_space_id,
             project_id=project_id,
@@ -77,7 +78,7 @@ async def upload_knowledge_document(
     background_tasks.add_task(process_document, document_id)
     return {
         "document_id": document_id,
-        "filename": stored_path.name,
+        "filename": original_filename,
         "product_space_id": str(product_space_id),
         "project_id": str(project_id),
         "release_id": str(release_id) if release_id else None,

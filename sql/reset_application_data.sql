@@ -2,6 +2,18 @@
 -- The list reflects the tables defined by this repository as of this migration.
 begin;
 truncate table
+  public.generated_change_validations,
+  public.generated_changes,
+  public.analysis_score_history,
+  public.impact_findings,
+  public.impact_evidence,
+  public.impact_requirements,
+  public.impact_analysis_runs,
+  public.repository_source_chunks,
+  public.repository_source_edges,
+  public.repository_source_symbols,
+  public.repository_source_files,
+  public.repository_snapshots,
   public.chat_runs,
   public.chat_retrieval_events,
   public.chat_message_intents,

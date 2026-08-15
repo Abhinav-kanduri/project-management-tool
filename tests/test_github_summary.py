@@ -172,7 +172,11 @@ def test_cache_round_trip(tmp_path: Path) -> None:
     assert cache.get("key") == {"result": True}
 
 
-def test_summary_route_uses_integrated_service() -> None:
+@pytest.mark.parametrize(
+    "endpoint",
+    ["/api/v1/github/summary", "/api/v1/github/summary/from-url"],
+)
+def test_summary_routes_use_integrated_service(endpoint: str) -> None:
     class FakeService:
         async def summarize(self, **_: object) -> RepositorySummaryResponse:
             return _response()
@@ -182,10 +186,71 @@ def test_summary_route_uses_integrated_service() -> None:
     app.dependency_overrides[get_repository_summary_service] = lambda: FakeService()
     client = TestClient(app)
     response = client.post(
-        "/api/v1/github/summary",
+        endpoint,
         json={"repository_url": "https://github.com/owner/repo"},
     )
     assert response.status_code == 200
     assert response.json()["status"] == "completed"
     assert response.json()["repository"]["full_name"] == "owner/repo"
 
+
+def test_url_summary_route_has_valid_openapi_examples() -> None:
+    app = FastAPI()
+    app.include_router(router)
+
+    request_body = app.openapi()["paths"]["/api/v1/github/summary/from-url"][
+        "post"
+    ]["requestBody"]
+    examples = request_body["content"]["application/json"]["examples"]
+
+    assert set(examples) == {"default_branch", "specific_branch"}
+    assert all("repository_url" in example["value"] for example in examples.values())
+
+
+def test_read_only_branch_options_do_not_require_project_actor(monkeypatch) -> None:
+    class FakeGitHubClient:
+        def __init__(self, _settings):
+            pass
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def list_branches(self, repository):
+            assert repository.full_name == "owner/repo"
+            return [
+                {
+                    "name": "feature/summary-ui",
+                    "commit": {"sha": "a" * 40},
+                    "protected": False,
+                },
+                {
+                    "name": "main",
+                    "commit": {"sha": "b" * 40},
+                    "protected": True,
+                },
+            ]
+
+    monkeypatch.setattr("app.routes.github.GitHubClient", FakeGitHubClient)
+    app = FastAPI()
+    app.include_router(router)
+    response = TestClient(app).get(
+        "/api/v1/github/repositories/branches",
+        params={"repository_url": "https://github.com/owner/repo"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["branches"] == [
+        {
+            "name": "feature/summary-ui",
+            "commit_sha": "a" * 40,
+            "protected": False,
+        },
+        {
+            "name": "main",
+            "commit_sha": "b" * 40,
+            "protected": True,
+        },
+    ]

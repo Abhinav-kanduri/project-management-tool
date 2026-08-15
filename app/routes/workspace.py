@@ -346,7 +346,14 @@ def planning_options(project_id: UUID, piReleaseId: UUID | None = None, featureI
             except ValueError: raise HTTPException(422,"Invalid Sprint selection.")
             story_sql+=" and sprint_id=%s"
         cursor.execute("select id,story_key,title,feature_id,release_id,sprint_id from user_stories where project_id=%s and archived_at is null"+story_sql+" order by story_key",tuple(story_args)); stories=cursor.fetchall()
-    return {"piReleases":releases,"features":features,"sprints":sprints,"userStories":stories}
+    return {
+        "piReleases": releases,
+        "features": features,
+        "sprints": sprints,
+        "userStories": stories,
+        "user_stories": stories,
+        "stories": stories,
+    }
 
 
 @router.get("/features/{feature_id}/generation-context")

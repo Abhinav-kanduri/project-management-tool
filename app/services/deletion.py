@@ -190,13 +190,21 @@ class CascadeDeleteService:
         return report.as_dict()
 
     def reset_application_data(self) -> dict[str, int]:
+        impact_order = [
+            'generated_change_validations', 'generated_changes',
+            'analysis_score_history', 'impact_findings', 'impact_evidence',
+            'impact_requirements', 'impact_analysis_runs',
+            'repository_source_chunks', 'repository_source_edges',
+            'repository_source_symbols', 'repository_source_files',
+            'repository_snapshots',
+        ]
         order = ["chat_runs", "chat_retrieval_events", "chat_message_intents", "chat_messages", "chat_sessions",
                  "acceptance_criteria", "user_stories", "features", "sprints", "releases", "ai_generations",
                  "project_sequences", "idempotency_keys", "activity_logs", "project_members", "product_space_members",
                  "organization_members", "projects", "product_spaces", "organizations", "document_chunks",
                  "documents", "connection_test", "escalated_table"]
         counts = {}
-        for table in order:
+        for table in impact_order + order:
             if self._table_exists(table): counts[table] = self._delete(table, "true", ())
         logger.warning("application_data_reset actor=%s counts=%s", self.actor, counts)
         return counts

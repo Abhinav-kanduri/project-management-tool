@@ -27,6 +27,7 @@ from app.github_summary.models import (
     RepositoryIdentity,
     RepositorySummary,
     RepositorySummaryResponse,
+    LatestSummaryResponse,
     SummarySearchRequest,
     SummarySearchResponse,
 )
@@ -229,6 +230,20 @@ class RepositorySummaryService:
 
     async def markdown_path(self, document_id: UUID) -> Path | None:
         return await self._indexing.markdown_path(document_id)
+
+    async def response(self, document_id: UUID) -> RepositorySummaryResponse | None:
+        return await self._indexing.response(document_id)
+
+    async def latest_summary(
+        self, *, repository_url: str, branch: str
+    ) -> LatestSummaryResponse:
+        repository_ref = parse_github_repository_url(
+            repository_url, allowed_hosts=self._settings.allowed_hosts
+        )
+        return await self._indexing.latest_summary(
+            repository_url=repository_ref.canonical_url,
+            branch=branch,
+        )
 
     async def chunks(
         self, document_id: UUID, *, offset: int, limit: int

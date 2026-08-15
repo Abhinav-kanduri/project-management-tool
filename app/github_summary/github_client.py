@@ -204,6 +204,20 @@ class GitHubClient:
         )
         return str(payload.get("sha")) if isinstance(payload, dict) else None
 
+    async def list_branches(self, repository: GitHubRepositoryRef) -> list[dict[str, Any]]:
+        branches: list[dict[str, Any]] = []
+        for page in range(1, 1001):
+            payload = await self._get_json(
+                f"repos/{repository.owner}/{repository.repository}/branches",
+                params={"per_page": 100, "page": page},
+            )
+            if not isinstance(payload, list):
+                raise GitHubApiError("Unexpected repository branch response from GitHub")
+            branches.extend(item for item in payload if isinstance(item, dict))
+            if len(payload) < 100:
+                return branches
+        raise GitHubApiError("Repository branch pagination exceeded the safety limit")
+
     async def download_archive(self, repository: GitHubRepositoryRef, ref: str) -> bytes:
         encoded_ref = quote(ref, safe="")
         path = f"repos/{repository.owner}/{repository.repository}/tarball/{encoded_ref}"

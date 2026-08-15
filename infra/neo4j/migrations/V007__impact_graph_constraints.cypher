@@ -1,0 +1,2 @@
+CREATE CONSTRAINT impact_node_id IF NOT EXISTS
+FOR (n:ImpactNode) REQUIRE n.id IS UNIQUE;

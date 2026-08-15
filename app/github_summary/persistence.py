@@ -283,6 +283,35 @@ class SummaryRepository:
         except PsycopgError as exc:
             raise SummaryDatabaseError("Unable to load repository summary document") from exc
 
+    def find_latest_completed_for_ref(
+        self, *, repository_url: str, branch: str
+    ) -> dict[str, Any] | None:
+        try:
+            with get_connection() as connection, connection.cursor() as cursor:
+                cursor.execute(
+                    """
+                    select id as document_id, repository_url,
+                           repository_full_name, branch, commit_sha,
+                           coalesce(
+                               response_payload->'summary'->>'title',
+                               repository_full_name || ' repository summary'
+                           ) as title,
+                           generated_at, indexed_at, chunk_count
+                    from github_repository_summary_documents
+                    where repository_url = %s
+                      and branch = %s
+                      and status = 'COMPLETED'
+                    order by indexed_at desc nulls last, generated_at desc
+                    limit 1
+                    """,
+                    (repository_url, branch),
+                )
+                return serialize_row(cursor.fetchone())
+        except PsycopgError as exc:
+            raise SummaryDatabaseError(
+                "Unable to load the latest repository summary"
+            ) from exc
+
     def list_chunks(
         self, document_id: UUID, *, offset: int, limit: int
     ) -> tuple[int, list[dict[str, Any]]]:

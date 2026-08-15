@@ -12,6 +12,7 @@ from psycopg.types.json import Jsonb
 from app.config import (
     KNOWLEDGE_UPLOAD_MAX_BYTES,
     KNOWLEDGE_UPLOAD_ROOT,
+    PROJECT_ROOT,
     WORKSPACE_ENVIRONMENTS,
 )
 from app.database import get_connection
@@ -24,6 +25,25 @@ ALLOWED_CONTENT_TYPES = {
     "text/markdown",
     "application/octet-stream",
 }
+
+
+def knowledge_upload_root() -> Path:
+    """Return a stable absolute upload root independent of server cwd."""
+    configured_root = Path(KNOWLEDGE_UPLOAD_ROOT).expanduser()
+    if not configured_root.is_absolute():
+        configured_root = PROJECT_ROOT / configured_root
+    return configured_root.resolve()
+
+
+def discard_upload_path(directory: Path, stored_path: Path) -> None:
+    try:
+        stored_path.unlink(missing_ok=True)
+    except OSError:
+        pass
+    try:
+        directory.rmdir()
+    except OSError:
+        pass
 
 
 def knowledge_error(
@@ -124,21 +144,22 @@ async def persist_upload(
     file: UploadFile,
     product_space_id: UUID,
     project_id: UUID,
-) -> tuple[str, Path, int, str, str]:
+) -> tuple[str, Path, str, int, str, str]:
     safe_filename, content_type = validate_file(file)
     document_id = str(uuid4())
     directory = (
-        Path(KNOWLEDGE_UPLOAD_ROOT)
+        knowledge_upload_root()
         / str(product_space_id)
         / str(project_id)
         / document_id
     )
-    directory.mkdir(parents=True, exist_ok=False)
-    stored_path = directory / safe_filename
+    extension = Path(safe_filename).suffix.lower()
+    stored_path = directory / f"source{extension}"
     checksum = hashlib.sha256()
     total_size = 0
 
     try:
+        directory.mkdir(parents=True, exist_ok=False)
         with stored_path.open("wb") as destination:
             while content := await file.read(1024 * 1024):
                 total_size += len(content)
@@ -150,22 +171,28 @@ async def persist_upload(
                     )
                 checksum.update(content)
                 destination.write(content)
+    except OSError:
+        discard_upload_path(directory, stored_path)
+        knowledge_error(
+            503,
+            "UPLOAD_STORAGE_UNAVAILABLE",
+            "Document storage is temporarily unavailable.",
+            retryable=True,
+        )
     except Exception:
-        stored_path.unlink(missing_ok=True)
-        if directory.exists():
-            directory.rmdir()
+        discard_upload_path(directory, stored_path)
         raise
     finally:
         await file.close()
 
     if total_size == 0:
-        stored_path.unlink(missing_ok=True)
-        directory.rmdir()
+        discard_upload_path(directory, stored_path)
         knowledge_error(400, "INVALID_UPLOAD", "The uploaded file is empty.")
 
     return (
         document_id,
         stored_path,
+        safe_filename,
         total_size,
         checksum.hexdigest(),
         content_type,

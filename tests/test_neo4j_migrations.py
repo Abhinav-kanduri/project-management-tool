@@ -34,7 +34,7 @@ class CypherParserTests(unittest.TestCase):
 
     def test_discovers_versioned_migrations(self) -> None:
         migrations = discover_migrations(SCRIPTS.parent / "migrations")
-        self.assertEqual(list(range(1, 7)), [item.number for item in migrations])
+        self.assertEqual(list(range(1, 9)), [item.number for item in migrations])
         self.assertTrue(all(len(item.checksum) == 64 for item in migrations))
 
 

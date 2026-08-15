@@ -213,6 +213,43 @@ def test_retrieval_routes_and_search_route_order(tmp_path: Path) -> None:
     assert search.json()["results"] == []
 
 
+def test_search_openapi_examples_use_exactly_one_target() -> None:
+    app = FastAPI()
+    app.include_router(router)
+
+    request_body = app.openapi()["paths"]["/api/v1/github/summary/search"]["post"][
+        "requestBody"
+    ]
+    examples = request_body["content"]["application/json"]["examples"]
+
+    assert set(examples) == {"by_document_id", "by_repository_url"}
+    for example in examples.values():
+        value = example["value"]
+        assert ("document_id" in value) != ("repository_url" in value)
+
+
+def test_search_rejects_multiple_targets_before_calling_service() -> None:
+    class FakeService:
+        async def search(self, _request):
+            raise AssertionError("invalid requests must not reach the service")
+
+    app = FastAPI()
+    app.include_router(router)
+    app.dependency_overrides[get_repository_summary_service] = lambda: FakeService()
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/v1/github/summary/search",
+        json={
+            "document_id": str(uuid4()),
+            "repository_url": "https://github.com/owner/repository",
+            "query": "architecture",
+        },
+    )
+
+    assert response.status_code == 422
+
+
 def test_chunk_index_transaction_orders_replace_before_complete(monkeypatch) -> None:
     statements: list[str] = []
 

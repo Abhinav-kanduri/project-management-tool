@@ -21,7 +21,9 @@ from app.github_summary.github_url import parse_github_repository_url
 from app.github_summary.indexing_models import ArtifactManifest, MarkdownChunk
 from app.github_summary.models import (
     ChunkInspectionResponse,
+    LatestSummaryResponse,
     RepositorySummaryResponse,
+    SummaryDocumentReference,
     SummaryArtifact,
     SummarySearchRequest,
     SummarySearchResponse,
@@ -268,6 +270,27 @@ class SummaryIndexingService:
             return None
         path = self.artifacts.resolve_stored_path(row["markdown_path"])
         return path
+
+    async def response(self, document_id: UUID) -> RepositorySummaryResponse | None:
+        row = await asyncio.to_thread(self.repository.get_document, document_id)
+        if not row or row.get("status") != "COMPLETED":
+            return None
+        try:
+            return RepositorySummaryResponse.model_validate(row["response_payload"])
+        except (KeyError, TypeError, ValidationError):
+            return None
+
+    async def latest_summary(
+        self, *, repository_url: str, branch: str
+    ) -> LatestSummaryResponse:
+        row = await asyncio.to_thread(
+            self.repository.find_latest_completed_for_ref,
+            repository_url=repository_url,
+            branch=branch,
+        )
+        return LatestSummaryResponse(
+            summary=SummaryDocumentReference.model_validate(row) if row else None
+        )
 
     async def chunks(
         self, document_id: UUID, *, offset: int, limit: int

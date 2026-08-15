@@ -14,6 +14,8 @@ from app.routes.chat import router as chat_router
 from app.routes.deletion import router as deletion_router
 from app.routes.generation import router as generation_router
 from app.routes.graph import router as graph_router
+from app.routes.impact_contract import router as impact_analysis_router
+from app.routes.impact_selectors import router as impact_selectors_router
 from app.routes.github import router as github_router
 from app.routes.knowledge_base import router as knowledge_base_router
 from app.routes.workspace import router as workspace_router
@@ -34,6 +36,8 @@ app.include_router(workspace_router)
 app.include_router(chat_router)
 app.include_router(knowledge_base_router)
 app.include_router(graph_router)
+app.include_router(impact_analysis_router)
+app.include_router(impact_selectors_router)
 app.include_router(github_router)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
